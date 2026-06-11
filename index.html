@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rumbo a Mataró — Plan de migración</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+<style>
+:root{
+  --bg:#faf8f4;--card:#ffffff;--ink:#2b2b33;--muted:#8a8896;
+  --accent:#e8643c;--accent-soft:#fdeee8;
+  --green:#2f9e6e;--green-soft:#e7f5ee;
+  --blue:#3d6fe0;--blue-soft:#eaf0fd;
+  --amber:#d9930d;--amber-soft:#fdf3df;
+  --border:#eceae4;--radius:18px;
+  --shadow:0 2px 12px rgba(43,43,51,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;padding:28px 20px 60px}
+.wrap{max-width:880px;margin:0 auto}
+/* hero */
+.hero{text-align:center;margin-bottom:36px}
+.hero .kicker{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-size:34px;font-weight:800;letter-spacing:-1px;margin:6px 0 2px}
+.hero p{color:var(--muted);font-size:15px}
+.countdown{display:inline-block;margin-top:12px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;padding:8px 18px;border-radius:30px}
+/* big numbers */
+.bignums{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:14px}
+.bn{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;text-align:center;box-shadow:var(--shadow)}
+.bn .n{font-size:30px;font-weight:800;letter-spacing:-.5px}
+.bn .t{font-size:13px;color:var(--muted);margin-top:4px}
+.bn.g .n{color:var(--green)}
+.bn.b .n{color:var(--blue)}
+.bn.a .n{color:var(--amber)}
+.note-line{text-align:center;color:var(--muted);font-size:13px;margin-bottom:40px}
+h2{font-size:20px;font-weight:800;letter-spacing:-.3px;margin:44px 0 6px}
+.h2sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+/* palancas */
+.lever{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:border-color .2s}
+.lever.on{border-color:var(--green)}
+.lever .sw{position:relative;width:48px;height:28px;border-radius:20px;background:#d8d6cf;cursor:pointer;flex-shrink:0;transition:background .2s}
+.lever.on .sw{background:var(--green)}
+.lever .sw::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.lever.on .sw::after{left:23px}
+.lever .body{flex:1}
+.lever .name{font-weight:700;font-size:15px}
+.lever .exp{font-size:13px;color:var(--muted);margin-top:2px}
+.lever .val{font-size:18px;font-weight:800;color:var(--green);white-space:nowrap}
+.lever .val small{display:block;font-size:11px;font-weight:600;color:var(--muted);text-align:right}
+.total-lever{background:var(--green-soft);border:1.5px dashed var(--green);border-radius:var(--radius);padding:18px 22px;display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.total-lever .t{font-weight:700;font-size:15px;color:var(--green)}
+.total-lever .v{font-size:26px;font-weight:800;color:var(--green)}
+/* timeline */
+.tl{position:relative;margin-left:10px;padding-left:30px;border-left:3px solid var(--border)}
+.tphase{position:relative;margin-bottom:8px}
+.tphase .dot{position:absolute;left:-41px;top:2px;width:19px;height:19px;border-radius:50%;border:4px solid var(--bg)}
+.tphase .when{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.tphase h3{font-size:17px;font-weight:800;margin:1px 0 8px}
+.tphase .you{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:12px;margin-left:8px;vertical-align:2px}
+.titem{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:12px;cursor:pointer;margin-bottom:2px}
+.titem:hover{background:#f3f1ea}
+.titem .chk{width:21px;height:21px;border:2px solid #cfccc2;border-radius:7px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700}
+.titem.done .chk{background:var(--green);border-color:var(--green)}
+.titem.done .tx{color:var(--muted);text-decoration:line-through}
+.titem .tx{font-size:14.5px}
+.titem .why{display:block;font-size:12.5px;color:var(--muted)}
+.tphase .spacer{height:18px}
+/* charts */
+.chartcards{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.ccard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.ccard h3{font-size:15px;font-weight:700;margin-bottom:4px}
+.ccard .sub{font-size:12.5px;color:var(--muted);margin-bottom:12px}
+canvas{max-height:240px}
+/* pagos */
+.pay{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 18px;margin-bottom:8px;box-shadow:var(--shadow)}
+.pay .date{font-weight:800;font-size:13px;color:var(--blue);width:90px;flex-shrink:0}
+.pay .what{flex:1;font-size:14px}
+.pay .what small{display:block;color:var(--muted);font-size:12px}
+.pay .amt{font-weight:800;font-size:15px;white-space:nowrap}
+/* glosario */
+.gloss{display:grid;grid-template-columns:1fr 1fr;gap:10px 24px}
+.gterm{font-size:13.5px;padding:10px 0;border-bottom:1px solid var(--border)}
+.gterm b{color:var(--ink)}
+.gterm span{color:var(--muted)}
+details.adv{margin-top:40px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px}
+details.adv summary{cursor:pointer;font-weight:700;font-size:14px;color:var(--muted)}
+.advrow{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px}
+.advrow label{font-size:12px;color:var(--muted);display:block}
+.advrow input{border:1px solid var(--border);border-radius:8px;padding:7px 10px;width:110px;font-size:14px;background:var(--bg)}
+.footer{margin-top:36px;color:var(--muted);font-size:12px;text-align:center;line-height:1.7}
+@media(max-width:720px){.bignums{grid-template-columns:1fr}.chartcards{grid-template-columns:1fr}.gloss{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Plan de migración</div>
+  <h1>Rumbo a Mataró 🇪🇸</h1>
+  <p>Vos + tu esposa · 15 de septiembre de 2026 · mismo trabajo, nueva vida</p>
+  <div class="countdown" id="countdown"></div>
+</div>
+
+<div class="bignums">
+  <div class="bn b"><div class="n" id="bnFact">—</div><div class="t">facturás por año a Holafly<br>(igual que hoy, sin cambios)</div></div>
+  <div class="bn g"><div class="n" id="bnNeto">—</div><div class="t">te queda limpio el primer año<br>(después de TODOS los impuestos)</div></div>
+  <div class="bn a"><div class="n" id="bnPrimer">abr 2027</div><div class="t">primer pago a Hacienda española<br>(hasta entonces, nada)</div></div>
+</div>
+<div class="note-line" id="noteLine">—</div>
+
+<h2>💪 Tus palancas de ahorro (todo legal, todo documentado)</h2>
+<div class="h2sub">Cada palanca que activás baja tus impuestos. Tocá los switches y mirá el total.</div>
+<div id="levers"></div>
+<div class="total-lever"><span class="t">Recuperás por año con las palancas activas</span><span class="v" id="totLever">—</span></div>
+
+<h2>🗓️ El camino, paso a paso</h2>
+<div class="h2sub">Tocá cada paso para marcarlo hecho. Tu progreso queda guardado.</div>
+<div class="tl" id="timeline"></div>
+
+<h2>📈 Tu plata, mes a mes</h2>
+<div class="chartcards">
+  <div class="ccard">
+    <h3>Lo que vas acumulando</h3>
+    <div class="sub">Ahorro bruto acumulado (antes de alquiler y vida). La línea nunca baja: ningún mes te quedás sin margen.</div>
+    <canvas id="chAcc"></canvas>
+  </div>
+  <div class="ccard">
+    <h3>De cada €100 que facturás…</h3>
+    <div class="sub">Año 2028, ya en régimen normal (el año más caro del plan).</div>
+    <canvas id="chDonut"></canvas>
+  </div>
+</div>
+
+<h2>💸 Próximos pagos importantes</h2>
+<div class="h2sub">Para que ninguno te sorprenda. Los montos se ajustan solos a tus palancas.</div>
+<div id="pagos"></div>
+
+<h2>📞 A quién llamar</h2>
+<div class="h2sub">Dos problemas distintos, dos perfiles distintos. No mezclar.</div>
+<div class="chartcards">
+  <div class="ccard">
+    <h3>Estrategia fiscal (una consulta, ~€150-300)</h3>
+    <div class="sub">Para las 2 preguntas críticas: sept-dic 2026 y Beckham 2027. Tiene que saber de impatriados, CDI Argentina y Deel.</div>
+    <div class="gterm"><b><a href="https://www.lullius.com/en/beckham-law/" target="_blank">Lullius Partners</a></b> <span>— boutique especialista en Beckham, BCN/Madrid. Los que mejor conocen el caso Deel/EOR. Primera opción.</span></div>
+    <div class="gterm"><b><a href="https://balcellsgroup.com/services/tax-lawyer-barcelona/" target="_blank">Balcells Group</a></b> <span>— fiscal + extranjería bajo el mismo techo, Barcelona. Útil si quieren resolver EX-19 y fiscal juntos.</span></div>
+    <div class="gterm"><b><a href="https://www.lexidy.com/services/spain/tax/beckham-law/" target="_blank">Lexidy</a></b> <span>— legal-tech para expats, precio cerrado por servicio.</span></div>
+    <div class="gterm"><b>Conocido de Barcelona</b> <span>— solo si pasa el test: ¿sabe la diferencia entre contractor Deel y Deel EOR para el art. 93? Si duda, es para extranjería, no para esto.</span></div>
+  </div>
+  <div class="ccard">
+    <h3>Gestoría del día a día (recurrente, €40-100/mes)</h3>
+    <div class="sub">Trimestrales, facturas, renta. Se elige en noviembre-diciembre.</div>
+    <div class="gterm"><b><a href="https://taxscouts.es" target="_blank">TaxScouts</a></b> <span>— desde ~€40/mes. Simple y suficiente para tu caso.</span></div>
+    <div class="gterm"><b><a href="https://declarando.es" target="_blank">Declarando</a></b> <span>— ~€70-100/mes, más proactivos con deducciones (tus palancas).</span></div>
+    <div class="gterm"><b><a href="https://www.xolo.io/es-es" target="_blank">Xolo</a></b> <span>— pensada para freelancers con clientes internacionales. Encaja con el perfil Deel + Irlanda.</span></div>
+    <div class="gterm"><b>Extranjería (EX-19, CUE)</b> <span>— acá sí: gestor local o el conocido de Barcelona sirven perfecto. Es trámite operativo, no estrategia.</span></div>
+  </div>
+</div>
+
+<h2>📖 Diccionario rápido</h2>
+<div class="h2sub">Los nombres raros del dashboard, en una línea cada uno.</div>
+<div class="gloss">
+  <div class="gterm"><b>Traducción jurada</b> <span>— traducción oficial exigida solo para documentos que NO están en español. El acta argentina está en español: no la necesita. ✅</span></div>
+  <div class="gterm"><b>Vigencia del certificado</b> <span>— extranjería suele querer actas de estado civil de menos de 3-6 meses. Como el acta CABA es digital, se re-pide online con apostilla en días.</span></div>
+  <div class="gterm"><b>Padrón</b> <span>— registrarte en el ayuntamiento como vecino. Gratis, y es la llave de todos los demás trámites. Debe reflejar donde realmente vivís.</span></div>
+  <div class="gterm"><b>NIE</b> <span>— tu número de identidad de extranjero en España. Lo usás para todo: banco, contrato, impuestos.</span></div>
+  <div class="gterm"><b>CUE</b> <span>— el certificado verde que te dan como ciudadano UE residente. Al sacarlo te asignan el NIE.</span></div>
+  <div class="gterm"><b>EX-19</b> <span>— el formulario para la tarjeta de residencia de tu esposa, por ser cónyuge de ciudadano UE. Le da derecho a vivir y trabajar 5 años.</span></div>
+  <div class="gterm"><b>Autónomo / RETA</b> <span>— el equivalente español del monotributo+autónomos: tu alta como independiente y la cuota mensual de seguridad social.</span></div>
+  <div class="gterm"><b>Tarifa plana</b> <span>— descuento de bienvenida: pagás solo €80/mes de seguridad social durante tu primer año (después ~€530).</span></div>
+  <div class="gterm"><b>Modelo 130</b> <span>— adelanto trimestral de impuesto a las ganancias (20% de lo que ganaste en el trimestre). Lo presenta tu gestoría.</span></div>
+  <div class="gterm"><b>La renta</b> <span>— la declaración anual (como Ganancias en AR). Se presenta entre abril y junio del año siguiente; pagás o te devuelven la diferencia.</span></div>
+  <div class="gterm"><b>ROI / VIES</b> <span>— registro que te permite facturarle a Holafly Irlanda SIN IVA. Trámite de una vez, lo pide la gestoría.</span></div>
+  <div class="gterm"><b>Gestoría</b> <span>— tu contador español. Online sale €40-100/mes y se ocupa de todos los modelos y fechas.</span></div>
+  <div class="gterm"><b>Ley Beckham</b> <span>— régimen especial del 24% fijo para recién llegados con contrato de empleo. Hoy no te conviene con Holafly; guardala para un futuro empleo Head of Growth.</span></div>
+  <div class="gterm"><b>Declaración conjunta</b> <span>— declarar impuestos en pareja. Como tu esposa no tiene ingresos, Hacienda te descuenta parte de la base. Plata gratis.</span></div>
+</div>
+
+<details class="adv">
+  <summary>⚙️ Ajustes del modelo (si querés tocar los supuestos)</summary>
+  <div class="advrow">
+    <div><label>Fee mensual €</label><input type="number" id="inFee" value="4583" step="50"></div>
+    <div><label>Gastos operativos €/mes</label><input type="number" id="inGastos" value="167" step="10"></div>
+    <div><label>Cuota autónomo 2028 €/mes</label><input type="number" id="inReta" value="530" step="10"></div>
+  </div>
+</details>
+
+<div class="footer">
+Estimaciones con la escala de impuestos de Cataluña vigente · tu gestoría afina los números finales con gastos reales.<br>
+Esto es planificación, no asesoramiento fiscal. Compañeros: <b>roadmap-mudanza-espana.md</b> (detalle) · <b>proyeccion-cashflow-espana.xlsx</b> (números finos) · <b>migracion-fiscal-espana-2026.md</b> (el porqué de cada decisión).
+</div>
+</div>
+
+<script>
+const fmt=v=>(v<0?'−':'')+'€'+Math.abs(Math.round(v)).toLocaleString('es-ES');
+const fmtK=v=>'€'+(Math.round(v/100)/10).toLocaleString('es-ES')+'K';
+
+// IRPF Cataluña aprox (estatal+autonómica) con mínimo personal
+const BR=[[0,.20],[12450,.24],[17707,.26],[20200,.30],[33007,.335],[35200,.37],[53407,.40]];
+function irpf(base){
+  if(base<=0)return 0;
+  let t=0;
+  for(let i=0;i<BR.length;i++){
+    const top=i<BR.length-1?BR[i+1][0]:Infinity;
+    if(base>BR[i][0])t+=(Math.min(base,top)-BR[i][0])*BR[i][1];
+  }
+  return Math.max(0,t-5550*BR[0][1]);
+}
+
+// ---- Palancas (ahorro legal) ----
+const LEVERS=[
+ {id:'lv-conj',name:'Declaración conjunta con tu esposa',exp:'Mientras ella no tenga ingresos, declarar en pareja te resta €3.400 de la base imponible. Cero esfuerzo: es un tilde en la renta.',base:3400,on:true},
+ {id:'lv-pens',name:'Plan de pensiones de autónomos',exp:'Hasta €5.750/año que van a TU jubilación europea y se descuentan de la base. No es un gasto: es ahorro tuyo que Hacienda subsidia.',base:5750,on:false},
+ {id:'lv-salud',name:'Seguro de salud como gasto deducible',exp:'Siendo autónomo, la prima del seguro privado deduce hasta €500 por vos + €500 por tu esposa.',base:1000,on:false},
+ {id:'lv-home',name:'Home office bien documentado',exp:'Declarando tu casa como lugar de trabajo deducís el 30% proporcional de luz, agua, internet, más equipo y mobiliario. Estimado prudente: €1.200/año de gastos extra.',base:1200,on:false}];
+
+let state={};
+try{state=JSON.parse(localStorage.getItem('mig-es')||'{}')}catch(e){}
+LEVERS.forEach(l=>{if(state[l.id]===undefined)state[l.id]=l.on});
+function save(){try{localStorage.setItem('mig-es',JSON.stringify(state))}catch(e){}}
+
+function marginal(base){
+  for(let i=BR.length-1;i>=0;i--)if(base>BR[i][0])return BR[i][1];
+  return BR[0][1];
+}
+
+function model(){
+  const fee=+document.getElementById('inFee').value||0;
+  const gastos=+document.getElementById('inGastos').value||0;
+  const reta28=+document.getElementById('inReta').value||0;
+  const F=fee*12,G=gastos*12;
+  const red=LEVERS.reduce((s,l)=>s+(state[l.id]?l.base:0),0);
+  const rn27=F-G-80*12, rn28=F-G-reta28*12;
+  const i27=irpf(rn27-red), i28=irpf(rn28-red);
+  const q27=.2*3*(fee-gastos-80), q28=.2*3*(fee-gastos-reta28);
+  const saldo27=Math.max(0,i27-4*q27);
+  // ahorro por palanca al marginal de su base
+  const lever$={};let acc=0;
+  LEVERS.forEach(l=>{
+    const before=irpf(rn28-acc), after=irpf(rn28-acc-l.base);
+    lever$[l.id]=before-after; if(state[l.id])acc+=l.base;
+  });
+  const totLever=irpf(rn28)-i28;
+  // caja acumulada mensual
+  const labels=[],accArr=[];let run=0;
+  const mn=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  for(let m=9;m<=12;m++){run+=fee-140-gastos;labels.push(mn[m-1]+' 26');accArr.push(run)}
+  for(let m=1;m<=12;m++){let o=80+gastos;if([4,7,10].includes(m))o+=q27;run+=fee-o;labels.push(mn[m-1]+' 27');accArr.push(run)}
+  for(let m=1;m<=12;m++){let o=reta28+gastos;if(m===1)o+=q27;if([4,7,10].includes(m))o+=q28;if(m===6)o+=saldo27;run+=fee-o;labels.push(mn[m-1]+' 28');accArr.push(run)}
+  return{F,G,fee,reta28,i27,i28,q27,q28,saldo27,red,lever$,totLever,labels,accArr,
+    neto27:F-G-80*12-i27,neto28:F-G-reta28*12-i28};
+}
+
+let chAcc,chDonut;
+function render(){
+  const M=model();
+  document.getElementById('bnFact').textContent=fmtK(M.F);
+  document.getElementById('bnNeto').textContent=fmtK(M.neto27);
+  document.getElementById('noteLine').textContent=
+    'En 2028 (régimen normal) te quedan '+fmtK(M.neto28)+' netos. Para comparar: de cada €100, te llevás €'+Math.round(M.neto28/M.F*100)+'.';
+
+  // levers
+  document.getElementById('levers').innerHTML=LEVERS.map(l=>`
+    <div class="lever ${state[l.id]?'on':''}" onclick="flip('${l.id}')">
+      <div class="sw"></div>
+      <div class="body"><div class="name">${l.name}</div><div class="exp">${l.exp}</div></div>
+      <div class="val">+${fmt(M.lever$[l.id])}<small>por año</small></div>
+    </div>`).join('');
+  document.getElementById('totLever').textContent='+'+fmt(M.totLever);
+
+  // charts
+  if(chAcc)chAcc.destroy();
+  chAcc=new Chart(document.getElementById('chAcc'),{type:'line',
+    data:{labels:M.labels,datasets:[{data:M.accArr,borderColor:'#2f9e6e',backgroundColor:'rgba(47,158,110,.12)',
+      fill:true,borderWidth:2.5,pointRadius:0,tension:.35}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Acumulado: '+fmt(c.parsed.y)}}},
+      scales:{x:{ticks:{color:'#8a8896',maxTicksLimit:7},grid:{display:false}},
+        y:{ticks:{color:'#8a8896',callback:v=>fmtK(v)},grid:{color:'#f0eee8'}}}}});
+
+  const pIrpf=M.i28/M.F*100,pReta=M.reta28*12/M.F*100,pG=M.G/M.F*100;
+  if(chDonut)chDonut.destroy();
+  chDonut=new Chart(document.getElementById('chDonut'),{type:'doughnut',
+    data:{labels:['Tu bolsillo','Impuestos (IRPF)','Seguridad social','Gastos del negocio'],
+      datasets:[{data:[100-pIrpf-pReta-pG,pIrpf,pReta,pG],
+      backgroundColor:['#2f9e6e','#e8643c','#d9930d','#3d6fe0'],borderColor:'#fff',borderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12,color:'#2b2b33',font:{size:12}}},
+      tooltip:{callbacks:{label:c=>c.label+': €'+c.parsed.toFixed(0)+' de cada €100'}}}}});
+
+  // pagos
+  const pagos=[
+    ['ene 2027','Arranca tu cuota de autónomo','Tarifa plana de bienvenida','€80/mes'],
+    ['abr 2027','Primer adelanto de impuestos (Modelo 130)','Después se repite en julio, octubre y enero',fmt(M.q27)],
+    ['ene 2028','Sube la cuota de autónomo','Se terminó la tarifa plana',fmt(M.reta28)+'/mes'],
+    ['jun 2028','La renta: saldo del año 2027','El pago grande del plan — ya presupuestado',fmt(M.saldo27)],
+    ['abr 2028','Adelantos trimestrales del 2028','Un poco menores: la cuota de autónomo deduce',fmt(M.q28)]];
+  document.getElementById('pagos').innerHTML=pagos.map(p=>`
+    <div class="pay"><div class="date">${p[0]}</div><div class="what">${p[1]}<small>${p[2]}</small></div><div class="amt">${p[3]}</div></div>`).join('');
+}
+function flip(id){state[id]=!state[id];save();render()}
+
+// ---- Timeline ----
+const PHASES=[
+ {when:'Ahora · jun–ago 2026',color:'#e8643c',you:true,items:[
+   {id:'m1',t:'Certificado de matrimonio apostillado',done:true,why:'Acta digital CABA (11-mar) + apostilla electrónica (28-mar). En español: NO necesita traducción jurada'},
+   {id:'m1c',t:'Re-emitir acta + apostilla frescas en agosto',why:'Extranjería suele pedir certificados con menos de 3-6 meses. En octubre el actual tendrá 7. Se re-pide online en días',subs:[
+     {id:'n1',t:'Agosto: pedir acta digital nueva en el portal del Registro Civil CABA'},
+     {id:'n2',t:'Apostilla electrónica sobre la nueva acta (TAD, ~ARS 4.500, 100% remoto)'},
+     {id:'n3',t:'Imprimir acta + apostilla + tener a mano el link de verificación online'},
+     {id:'n4',t:'Confirmar con el gestor el criterio de vigencia de la oficina que les toque'}]},
+   {id:'m2',t:'Consulta con asesor fiscal de expats (~€150)',why:'Especialista en fiscalidad internacional, no gestor genérico',subs:[
+     {id:'s5',t:'Elegir firma de la sección "A quién llamar" (abajo) o conocido SOLO si hace fiscalidad internacional'},
+     {id:'s6',t:'Test de filtro: ¿conoce la diferencia contractor Deel vs Deel EOR para el régimen Beckham?'},
+     {id:'s7',t:'Mandar antes: contrato Deel + handoff migratorio'},
+     {id:'s8',t:'Pregunta 1: ¿cómo trato sept-dic 2026 trabajando desde España sin ser residente?'},
+     {id:'s9',t:'Pregunta 2: ¿puedo activar Beckham si firmo un empleo en 2027 ya estando acá?'},
+     {id:'s10',t:'Salir con fecha de alta de autónomo definida'}]},
+   {id:'m3',t:'Avisar a Holafly y a Deel del cambio de país',why:'Mismo contrato, mismo fee: solo cambia tu país fiscal',subs:[
+     {id:'s11',t:'Avisar a tu contacto en Holafly (Pablo) que desde enero facturás desde España'},
+     {id:'s12',t:'Ticket a soporte Deel: cambio de país del contractor a España, efectivo 1/1/2027'},
+     {id:'s13',t:'Confirmar si requiere nuevo SOW firmado'}]},
+   {id:'m30',t:'Carpeta de solvencia simple',why:'El umbral es bajo (~€600/mes por persona): con tu fee sobrás. Evidencia primaria = Deel',subs:[
+     {id:'n5',t:'Descargar de Deel: contrato + últimos 6 recibos de pago'},
+     {id:'n6',t:'Extractos DolarApp como complemento (opcional)'}]},
+   {id:'m7',t:'Seguro de salud privado para los dos (desde 15/9)',why:'Requisito del CUE y del EX-19',subs:[
+     {id:'s17',t:'Cotizar Sanitas / Adeslas: cobertura completa, SIN copagos ni carencias'},
+     {id:'s18',t:'Incluir a Gaby en la póliza'},
+     {id:'s19',t:'Pedir certificado de cobertura en español para extranjería'}]},
+   {id:'m31',t:'Carpeta documental física (Gaby ya arma la digital)',subs:[
+     {id:'s20',t:'Imprimir todo por duplicado'},
+     {id:'s21',t:'Pasaportes + copias de todas las hojas'},
+     {id:'s22',t:'Matrimonio apostillado + traducción jurada'},
+     {id:'s23',t:'Contrato Deel + últimas 6 facturas + extractos'},
+     {id:'s24',t:'4 fotos carnet de cada uno (fondo blanco)'}]}]},
+ {when:'Al llegar · sep–oct 2026',color:'#3d6fe0',items:[
+   {id:'m8',t:'⚠️ Padrón: registrarse como vecinos — decisión a tomar',why:'Regla de oro: empadronarse donde DUERMEN de verdad. La trampa no es usar lo del amigo, es usarlo sin vivir ahí',subs:[
+     {id:'s25',t:'Opción A (si paran en lo del amigo en BCN): padrón ahí es 100% legítimo — autorización firmada del titular + su DNI + contrato/escritura'},
+     {id:'s25b',t:'Dato clave: Mataró y Barcelona son la MISMA provincia → la oficina de extranjería del EX-19 no cambia. Mudarse después no rompe nada'},
+     {id:'s25c',t:'Opción B (si van directo a Mataró): alojamiento temporal que permita padrón (alquiler con contrato, no todos los Airbnb sirven)'},
+     {id:'s27',t:'Llevar pasaportes de ambos a la cita del ayuntamiento'},
+     {id:'s28',t:'Pedir 2 volantes de empadronamiento CONJUNTO (mismo domicilio los dos: lo exige el EX-19)'},
+     {id:'s29',t:'Al firmar el alquiler definitivo en Mataró: re-empadronarse (trámite menor, las tarjetas siguen válidas)'}]},
+   {id:'m9',t:'Tu residencia UE (CUE) — te dan el NIE',why:'Citas escasas: buscarla apenas tengan el padrón',subs:[
+     {id:'s30',t:'Cita previa en sede.administracionespublicas.gob.es (oficina según tu padrón)'},
+     {id:'s31',t:'Formulario EX-18 + tasa 790-012 (~€12, se paga en banco antes)'},
+     {id:'s32',t:'Llevar: pasaporte alemán, padrón, contrato Deel + extractos europeos, seguro'},
+     {id:'s33',t:'Salís con el certificado verde: ese papelito ES tu NIE, plastificalo'}]},
+   {id:'m10',t:'Tarjeta de residencia de Gaby (EX-19)',why:'Entra sin visa con pasaporte argentino y se tramita acá. 5 años + derecho a trabajar',subs:[
+     {id:'s34',t:'Dentro de los 3 meses desde su entrada (sello/pasaje como referencia)'},
+     {id:'s35',t:'Cita previa Extranjería provincia Barcelona (telemática, escasean)'},
+     {id:'s36',t:'EX-19 + tasa 790-012 + matrimonio apostillado/traducido + padrón conjunto + pasaporte + foto + tus medios y seguro de ambos'},
+     {id:'s37',t:'Le toman huellas; el resguardo acredita estancia legal mientras resuelven (hasta 3 meses)'},
+     {id:'s38',t:'Antecedentes penales: normalmente NO se piden en régimen comunitario — confirmar con gestor'}]},
+   {id:'m12',t:'Cuenta bancaria española',subs:[
+     {id:'s39',t:'Con el NIE: CaixaBank / Sabadell / BBVA (o seguir con N26)'},
+     {id:'s40',t:'Domiciliar ahí seguros y futuros pagos de autónomo'}]}]},
+ {when:'Antes de fin de año · nov–dic 2026',color:'#d9930d',items:[
+   {id:'m16',t:'Elegir gestoría online (€40-100/mes)',subs:[
+     {id:'s41',t:'Shortlist: TaxScouts, Declarando, Xolo'},
+     {id:'s42',t:'Pregunta de filtro: ¿experiencia con contractor Deel facturando a cliente irlandés (ROI + 349)?'}]},
+   {id:'m14',t:'Alta de autónomo con efectos 1 de enero',why:'La arma la gestoría en una semana',subs:[
+     {id:'s43',t:'Modelo 036 (alta censal) marcando registro ROI para facturar sin IVA a Irlanda'},
+     {id:'s44',t:'Alta RETA con tarifa plana €80/mes'},
+     {id:'s45',t:'Verificar el VAT de Holafly Limited en VIES'}]},
+   {id:'m15',t:'Actualizar Deel: España, NIF español, IBAN español'}]},
+ {when:'Año 1 · 2027',color:'#2f9e6e',items:[
+   {id:'m20',t:'Primera factura desde España (sin IVA, a Irlanda)'},
+   {id:'m23',t:'Cerrar Argentina: baja fiscal en ARCA',why:'Un solo sistema fiscal, vida más simple',subs:[
+     {id:'s46',t:'Pedir certificado de residencia fiscal española a la AEAT (S2 2027)'},
+     {id:'s47',t:'Baja en ARCA por pérdida de residencia + cese del esquema actual'}]},
+   {id:'m24',t:'Si aparece empleo Head of Growth: frenar y activar Beckham',why:'La única puerta al 24% fijo. Asesor ANTES de firmar',subs:[
+     {id:'s48',t:'Contrato laboral → alta Seguridad Social → Modelo 149 dentro de 6 meses'}]}]},
+ {when:'Año 2 · 2028',color:'#8a8896',items:[
+   {id:'m27',t:'Primera declaración de la renta (abr–jun)',why:'El pago grande ya está presupuestado: sin sorpresas'},
+   {id:'m29',t:'Revisión anual: ¿sigue siendo la mejor estructura?'}]}];
+
+PHASES.forEach(p=>p.items.forEach(i=>{if(i.done&&state[i.id]===undefined)state[i.id]=true}));
+
+function renderTL(){
+  document.getElementById('timeline').innerHTML=PHASES.map(p=>`
+    <div class="tphase">
+      <div class="dot" style="background:${p.color}"></div>
+      <div class="when" style="color:${p.color}">${p.when}${p.you?'<span class="you">estás acá</span>':''}</div>
+      ${p.items.map(i=>{
+        const subs=i.subs||[];
+        const sdone=subs.filter(s=>state[s.id]).length;
+        const open=state['open-'+i.id];
+        return `
+        <div class="titem ${state[i.id]?'done':''}">
+          <div class="chk" onclick="tog('${i.id}')">${state[i.id]?'✓':''}</div>
+          <div style="flex:1" onclick="${subs.length?`fold('${i.id}')`:`tog('${i.id}')`}">
+            <span class="tx">${i.t}</span>
+            ${subs.length?`<span style="font-size:11px;color:var(--muted);font-weight:700"> · ${sdone}/${subs.length} ${open?'▾':'▸'}</span>`:''}
+            ${i.why?`<span class="why">${i.why}</span>`:''}
+            ${open?`<div style="margin-top:8px">${subs.map(s=>`
+              <div class="titem" style="padding:4px 8px;margin:0" onclick="event.stopPropagation();tog('${s.id}')">
+                <div class="chk ${state[s.id]?'':''}" style="width:16px;height:16px;border-radius:5px;font-size:10px;${state[s.id]?'background:var(--green);border-color:var(--green)':''}">${state[s.id]?'✓':''}</div>
+                <span class="tx" style="font-size:13px;${state[s.id]?'color:var(--muted);text-decoration:line-through':''}">${s.t}</span>
+              </div>`).join('')}</div>`:''}
+          </div>
+        </div>`}).join('')}
+      <div class="spacer"></div>
+    </div>`).join('');
+}
+function tog(id){state[id]=!state[id];save();renderTL()}
+function fold(id){state['open-'+id]=!state['open-'+id];save();renderTL()}
+
+// countdown
+const days=Math.ceil((new Date('2026-09-15')-new Date())/86400000);
+document.getElementById('countdown').textContent=days>0?`✈️ Faltan ${days} días`:'🏠 Ya estás en casa';
+
+['inFee','inGastos','inReta'].forEach(id=>document.getElementById(id).addEventListener('input',render));
+renderTL();render();
+</script>
+</body>
+</html>
